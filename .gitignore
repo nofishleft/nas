@@ -1,0 +1,14 @@
+cf-tunnel-accountid
+cf-tunnel-tunnelid
+cf-tunnel-key
+homepage-calibre-password
+homepage-immich-key
+homepage-jellyfin-key
+homepage-paperless-key
+homepage-qbittorrent-password
+qbittorrent-webui-password
+protonvpn-wg.conf
+secrets/
+.sops.yaml
+
+result
