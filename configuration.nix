@@ -1,15 +1,8 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
 { config, pkgs, lib, ... }:
 let
 in
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [ ./hardware-configuration.nix ];
 
   nixpkgs.config.permittedInsecurePackages = [
     "mbedtls-2.28.10"
@@ -24,18 +17,10 @@ in
   boot.loader.grub.device = "/dev/sdb";
   boot.loader.grub.useOSProber = true;
 
-  networking.hostName = "rishaan-nas"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+  networking.hostName = "rishaan-nas";
 
   # Enable networking
   networking.networkmanager.enable = true;
-  #networking.networkmanager.insertNameservers = ["192.168.0.175"];
-  #networking.networkmanager.appendNameservers = ["8.8.8.8" "8.8.4.4" "1.1.1.1"];
-
   networking.networkmanager.dns = "none";
   networking.useDHCP = false;
   networking.dhcpcd.enable = false;
@@ -71,7 +56,7 @@ in
     variant = "";
   };
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Define a user account.
   users.users.phush = {
     isNormalUser = true;
     description = "Phush";
@@ -118,8 +103,7 @@ in
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
+  # List packages installed in system profile.
   environment.systemPackages = with pkgs; [
     vim
     wget
@@ -199,19 +183,6 @@ in
       UseDns = true;
     };
   };
-
-/*
-  services.ocis = {
-    enable = true;
-    url = "https://localhost:9200";
-    address = "0.0.0.0";
-    port = 9200;
-    environment = {
-      OSIS_INSECURE = "true";
-    };
-#    stateDir = "/storage/ocis";
-  };
-*/
 
   services.jellyfin = {
     enable = true;
@@ -295,8 +266,9 @@ in
     selfUrlPath = "http://rss.rishaan";
   };
 
+  # todo, need to setup https/lets encrypt/acme
   services.n8n = {
-    enable = true;
+    enable = false;
     settings = {
       # Web frontend
       VUE_APP_URL_BASE_API = "http://n8n.rishaan/";
@@ -332,6 +304,7 @@ in
     };
   }) [ "foo" ]);
 
+  # Git mirror
   services.forgejo = {
     enable = true;
     settings = {
@@ -543,6 +516,7 @@ in
     ];
   };
 
+  # Todo: create widget for homepage
   networking.wg-quick.interfaces.protonvpn.configFile = "${./protonvpn-wg.conf}";
 
   services.cloudflared = {
@@ -571,12 +545,6 @@ in
         owner = "cloudflared";
         group = "cloudflared";
       };
-      /*"deluged/auth-file" = {
-        format = "binary";
-        sopsFile = ./secrets/deluge-auth-file;
-        owner = "deluge";
-        group = "deluge";
-      };*/
       "forgejo/mailer-token" = {
         format = "binary";
         sopsFile = ./secrets/forgejo-mailer-token;
@@ -629,7 +597,7 @@ in
         extraConfig = "client_max_body_size 1000M;";
       };
     };
-    # virtualHosts."rss.rishaan" = ...
+    # "rss.rishaan" auto configured by tt-rss
     virtualHosts."forgejo.rishaan" = {
       locations."/" = {
         proxyPass = "http://127.0.0.1:3000";
@@ -657,18 +625,8 @@ in
     };
   };
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
   networking.firewall.enable = false;
 
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It‘s perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "25.05"; # Did you read the comment?
+  system.stateVersion = "25.05";
 
 }
