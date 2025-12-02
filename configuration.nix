@@ -1,6 +1,7 @@
 { config, pkgs, lib, ... }:
 let
-  ports = {
+
+  unvalidatedPorts = {
     lvm-homepage = 9000;
     immich = 2283;
     qbittorrent-webui = 8112;
@@ -12,6 +13,19 @@ let
     phush-nz = 8085;
     jellyfin = 8096;
   };
+
+  portList = builtins.attrValues unvalidatedPorts;
+
+  portsAreUnique = 
+    let
+      uniquePorts = lib.lists.unique portList;
+    in
+    builtins.length portList == builtins.length uniquePorts;
+  
+  ports =
+    assert portsAreUnique || throw "Duplicate ports in configuration!";
+    unvalidatedPorts;
+
 in
 {
   imports = [ ./hardware-configuration.nix ];
