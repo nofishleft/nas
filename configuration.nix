@@ -1,5 +1,17 @@
 { config, pkgs, lib, ... }:
 let
+  ports = {
+    lvm-homepage = 9000;
+    immich = 2283;
+    qbittorrent-webui = 8112;
+    paperless = 28981;
+    calibre-web = 8083;
+    n8n = 5678;
+    forgejo = 3000;
+    homepage-dashboard = 8081;
+    phush-nz = 8085;
+    jellyfin = 8096;
+  };
 in
 {
   imports = [ ./hardware-configuration.nix ];
@@ -31,6 +43,7 @@ in
     "1.1.1.1"
     "1.0.0.1"
   ];
+
 
   # Set your time zone.
   time.timeZone = "Pacific/Auckland";
@@ -191,13 +204,13 @@ in
   services.immich = {
     enable = true;
     host = "127.0.0.1";
-    port = 2283;
+    port = ports.immich;
     mediaLocation = "/storage/immich";
   };
 
   services.qbittorrent = {
     enable = true;
-    webuiPort = 8112;
+    webuiPort = ports.qbittorrent-webui;
     user = "qbittorrent";
     group = "jfmedia";
     serverConfig = {
@@ -217,25 +230,6 @@ in
     };
   };
 
-  services.deluge = {
-    enable = false;
-    declarative = true;
-    authFile = "/run/secrets/deluged/auth-file";
-    config = {
-      download_location = "/storage/torrents/";
-      max_upload_speed = -1.0;
-      share_ratio_limit = 1.0;
-      allow_remote = true;
-      daemon_port = 58846;
-      listen_ports = [ 6881 6889 ];
-    };
-    web = {
-      enable = false;
-      openFirewall = true;
-      port = 8112;
-    };
-  };
-
   environment.etc."paperless-admin-pass".text = "admin";
   services.paperless = {
     enable = true;
@@ -244,7 +238,7 @@ in
     passwordFile = "/etc/paperless-admin-pass";
     consumptionDirIsPublic = true;
     #database.createLocally = true;
-    port = 28981;
+    port = ports.paperless;
     address = "127.0.0.1";
   };
 
@@ -252,7 +246,7 @@ in
     enable = true;
     listen = {
       ip = "127.0.0.1";
-      port = 8083;
+      port = ports.calibre-web;
     };
     options = {
       enableBookUploading = true;
@@ -286,7 +280,7 @@ in
       N8N_PROXY_HOPS = "1";
       #
       N8N_HOST = "127.0.0.1";
-      N8N_PORT = "5678";
+      N8N_PORT = builtins.toString ports.n8n;
       #
       N8N_SECURE_COOKIE = false;
     };
@@ -311,7 +305,7 @@ in
       server = {
         DOMAIN = "forgejo.rishaan";
         ROOT_URL = "http://forgejo.rishaan:80/";
-
+        HTTP_PORT = ports.forgejo;
       };
       mailer = {
         ENABLED = true;
@@ -343,13 +337,13 @@ in
   services.lvm-homepage = {
     enable = true;
     host = "127.0.0.1";
-    port = 9000;
+    port = ports.lvm-homepage;
   };
 
-  services.homepage-dashboard = {
+  services.homepage-dashboard = let port = builtins.toString ports.homepage-dashboard; in {
     enable = true;
-    allowedHosts = "localhost:8081,127.0.0.1:8081,192.168.0.64,dashboard.rishaan";
-    listenPort = 8081;
+    allowedHosts = "localhost:${port},127.0.0.1:${port},192.168.0.64,dashboard.rishaan";
+    listenPort = ports.homepage-dashboard;
     settings = {};
     widgets = [
       {
@@ -460,7 +454,7 @@ in
               icon = "";
               widget = {
                 type = "customapi";
-                url = "http://127.0.0.1:9000/lvs";
+                url = "http://127.0.0.1:${builtins.toString ports.lvm-homepage}/lvs";
                 refreshInterval = 30000;
                 display = "dynamic-list";
                 mappings = {
@@ -475,7 +469,7 @@ in
               icon = "";
               widget = {
                 type = "customapi";
-                url = "http://127.0.0.1:9000/vgs";
+                url = "http://127.0.0.1:${builtins.toString ports.lvm-homepage}/vgs";
                 refreshInterval = 30000;
                 display = "dynamic-list";
                 mappings = {
@@ -490,7 +484,7 @@ in
               icon = "";
               widget = {
                 type = "customapi";
-                url = "http://127.0.0.1:9000/pvs";
+                url = "http://127.0.0.1:${builtins.toString ports.lvm-homepage}/pvs";
                 refreshInterval = 30000;
                 display = "dynamic-list";
                 mappings = {
@@ -525,7 +519,7 @@ in
       credentialsFile = "/run/secrets/cloudflared/tunnel/public";
       default = "http_status:404";
       ingress = {
-        "phush.nz" = "http://localhost:8085";
+        "phush.nz" = "http://localhost:${builtins.toString ports.phush-nz}";
       };
     };
   };
@@ -563,51 +557,52 @@ in
       root = "/var/www/phushnz";
       listen = [{
         addr = "127.0.0.1";
-        port = 8085;
+        port = ports.phush-nz;
       }];
     };
     virtualHosts."dashboard.rishaan" = {
       locations."/" = {
-        proxyPass = "http://127.0.0.1:8081";
+        proxyPass = "http://127.0.0.1:${builtins.toString ports.homepage-dashboard}";
         proxyWebsockets = true;
       };
     };
     virtualHosts."jellyfin.rishaan" = {
       locations."/" = {
-        proxyPass = "http://127.0.0.1:8096";
+        proxyPass = "http://127.0.0.1:${builtins.toString ports.jellyfin}";
         proxyWebsockets = true;
       };
     };
     virtualHosts."torrent.rishaan" = {
       locations."/" = {
-        proxyPass = "http://127.0.0.7:8112";
+        proxyPass = "http://127.0.0.7:${builtins.toString ports.qbittorrent-webui}";
         proxyWebsockets = true;
       };
     };
     virtualHosts."paperless.rishaan" = {
       locations."/" = {
-        proxyPass = "http://127.0.0.1:28981";
+        proxyPass = "http://127.0.0.1:${builtins.toString ports.paperless}";
         proxyWebsockets = true;
       };
     };
     virtualHosts."calibre.rishaan" = {
       locations."/" = {
-        proxyPass = "http://127.0.0.1:8083";
+        proxyPass = "http://127.0.0.1:${builtins.toString ports.calibre-web}";
         proxyWebsockets = true;
         extraConfig = "client_max_body_size 1000M;";
       };
     };
     # "rss.rishaan" auto configured by tt-rss
+    # "grocy.rishaan" auto configured by grocy
     virtualHosts."forgejo.rishaan" = {
       locations."/" = {
-        proxyPass = "http://127.0.0.1:3000";
+        proxyPass = "http://127.0.0.1:${builtins.toString ports.forgejo}";
         proxyWebsockets = true;
         extraConfig = "client_max_body_size 100M;";
       };
     };
     virtualHosts."immich.rishaan" = {
       locations."/" = {
-        proxyPass = "http://127.0.0.1:2283";
+        proxyPass = "http://127.0.0.1:${builtins.toString ports.immich}";
         proxyWebsockets = true;
         extraConfig = ''
           client_max_body_size 50000G;
@@ -619,7 +614,7 @@ in
     };
     virtualHosts."n8n.rishaan" = {
       locations."/" = {
-        proxyPass = "http://127.0.0.1:5678";
+        proxyPass = "http://127.0.0.1:${builtins.toString ports.n8n}";
         proxyWebsockets = true;
       };
     };
