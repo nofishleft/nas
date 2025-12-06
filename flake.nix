@@ -10,9 +10,13 @@
       url = "github:nofishleft/lvm-homepage";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    wg-homepage = {
+      url = "github:nofishleft/wg-homepage";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, sops-nix, lvm-homepage, ...}@inputs: {
+  outputs = { self, nixpkgs, sops-nix, lvm-homepage, wg-homepage, ...}@inputs: {
     nixosConfigurations.rishaan-nas = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
@@ -26,6 +30,7 @@
           ];
         })
         lvm-homepage.nixosModules.default
+        wg-homepage.nixosModules.default
         ./configuration.nix
         sops-nix.nixosModules.sops
       ];

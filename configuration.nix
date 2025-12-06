@@ -3,6 +3,7 @@ let
 
   unvalidatedPorts = {
     lvm-homepage = 9000;
+    wg-homepage = 9001;
     immich = 2283;
     qbittorrent-webui = 8112;
     paperless = 28981;
@@ -133,6 +134,7 @@ in
   # List packages installed in system profile.
   environment.systemPackages = with pkgs; [
     vim
+    helix
     wget
 
     # Net testing
@@ -159,6 +161,7 @@ in
     delta
 
     fastfetch
+    hw-probe
     eza
     dust
     dysk
@@ -354,6 +357,12 @@ in
     port = ports.lvm-homepage;
   };
 
+  services.wg-homepage = {
+    enable = true;
+    host = "127.0.0.1";
+    port = ports.wg-homepage;
+  };
+
   services.homepage-dashboard = let port = builtins.toString ports.homepage-dashboard; in {
     enable = true;
     allowedHosts = "localhost:${port},127.0.0.1:${port},192.168.0.64,dashboard.rishaan";
@@ -505,6 +514,29 @@ in
                   name = "value";
                   label = "name";
                 };
+              };
+            };
+          }
+          {
+            "ProtonVPN" = {
+              icon = "proton-vpn.png";
+              widget = {
+                type = "customapi";
+                url = "http://127.0.0.1:${builtins.toString ports.wg-homepage}/interface/protonvpn";
+                refreshInterval = 30000;
+                display = "block";
+                mappings = [
+                  {
+                    field = "interface";
+                    label = "Name";
+                    format = "text";
+                  }
+                  {
+                    field = "last_handshake";
+                    label = "Last Handshake";
+                    format = "text";
+                  }
+                ];
               };
             };
           }
