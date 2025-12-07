@@ -271,14 +271,14 @@ in
     };
   };
 
-  services.tt-rss = {
+  /*services.tt-rss = {
     enable = true;
     virtualHost = "rss.rishaan";
     selfUrlPath = "http://rss.rishaan";
-  };
+  };*/
 
   # todo, need to setup https/lets encrypt/acme
-  services.n8n = {
+  /*services.n8n = {
     enable = false;
     settings = {
       # Web frontend
@@ -301,7 +301,7 @@ in
       #
       N8N_SECURE_COOKIE = false;
     };
-  };
+  };*/
 
   services.github-runners = lib.attrsets.mergeAttrsList (map (repo: {
     "north_${repo}" = {
